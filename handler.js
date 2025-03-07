@@ -35,7 +35,7 @@ try {
 
 // Get Lambda Bundle Size
 try {
-  const stats = statSync('handler.js');
+  const stats = statSync('handler.mjs');
   SIZE = stats.size;
 } catch (err) {
   console.error('Unable to determine file size', err);
