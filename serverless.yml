@@ -1,0 +1,84 @@
+service: migration-sandbox
+provider:
+  name: aws
+  runtime: nodejs20.x
+  architecture: arm64
+  endpointType: REGIONAL
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:UpdateItem
+      Resource:
+        - Fn::Sub: "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:service}-table"
+functions:
+  counter:
+    name: ${self:service}-counter
+    handler: handler.router
+    description: A lambda that counts its invocations
+    events:
+      - http:
+          path: "/{proxy+}"
+          method: any
+resources:
+  Resources:
+    #CounterLogGroup:
+    # DeletionPolicy: Retain
+    counterTable:
+      Type: AWS::DynamoDB::Table
+      #DeletionPolicy: Retain
+      Properties:
+        TableName: ${self:service}-table
+        KeySchema:
+          - AttributeName: key
+            KeyType: HASH
+        AttributeDefinitions:
+          - AttributeName: key
+            AttributeType: S
+        BillingMode: PAY_PER_REQUEST
+  Outputs:
+    # Override the service endpoint to add a suffix
+    "ServiceEndpoint":
+      {
+        "Description": "URL of the service endpoint",
+        "Value":
+          {
+            "Fn::Join":
+              [
+                "",
+                [
+                  "https://",
+                  { "Ref": "ApiGatewayRestApi" },
+                  ".execute-api.",
+                  { "Ref": "AWS::Region" },
+                  ".",
+                  { "Ref": "AWS::URLSuffix" },
+                  "/${sls:stage}/count",
+                ],
+              ],
+          },
+        "Export": { "Name": "sls-migration-sandbox-dev-ServiceEndpoint" },
+      }
+plugins:
+  - serverless-esbuild
+custom:
+  esbuild:
+    format: esm
+    exclude:
+      - "@aws-sdk/client-s3" # used by lambda-api but not used in this code: https://github.com/jeremydaly/lambda-api?tab=readme-ov-file#getlinks3path--expires--callback
+      - "@aws-sdk/s3-request-presigner" # see above
+      - "@aws-sdk/client-sso" # everything below is not used in the lambda environment, credentials come from env vars
+      - "@aws-sdk/client-sso-oidc"
+      - "@aws-sdk/credential-provider-ini"
+      - "@aws-sdk/credential-provider-process"
+      - "@aws-sdk/credential-provider-sso"
+      - "@aws-sdk/credential-provider-web-identity"
+      - "@aws-sdk/token-providers"
+      - "@smithy/credential-provider-imds"
+    define:
+      "process.env.awsSdk": '"${file(./node_modules/@aws-sdk/client-dynamodb/package.json):version}"'
+    banner:
+      js: import { createRequire } from 'module';const require = (await import('node:module')).createRequire(import.meta.url);const __filename = (await import('node:url')).fileURLToPath(import.meta.url);const __dirname = (await import('node:path')).dirname(__filename);
+    mainFields:
+      - module
+      - main
+    outputFileExtension: .mjs

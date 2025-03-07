@@ -1,0 +1,22 @@
+{
+  "name": "sls-cdk-migration",
+  "version": "1.0.0",
+  "description": "Example to practice migrating from serverless to cdk",
+  "main": "handler.js",
+  "scripts": {
+    "postinstall": "patch-package"
+  },
+  "author": "David Behroozi",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-lambda-powertools/metrics": "^2.15.0",
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "lambda-api": "^1.1.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "patch-package": "^8.0.0",
+    "serverless": "3.39.0",
+    "serverless-esbuild": "^1.55.0"
+  }
+}
