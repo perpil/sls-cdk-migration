@@ -22,7 +22,8 @@ functions:
 resources:
   Resources:
     #CounterLogGroup:
-    # DeletionPolicy: Retain
+    #  Type: AWS::Logs::LogGroup
+    #  DeletionPolicy: Retain
     counterTable:
       Type: AWS::DynamoDB::Table
       #DeletionPolicy: Retain
