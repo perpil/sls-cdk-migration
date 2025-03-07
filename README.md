@@ -1,5 +1,5 @@
 ## Install
-npm install
+`npm install`
 
 ## Deploy
 > [!NOTE]
